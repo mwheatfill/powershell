@@ -1,0 +1,2 @@
+# Gets all M365 E3 licensed users in the tenant
+$licensedUsers = Get-MgUser -Filter "assignedLicenses/any(x:x/skuId eq $($e3sku.SkuId) )" -ConsistencyLevel eventual -CountVariable e3licensedUserCount -All
