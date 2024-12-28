@@ -22,5 +22,5 @@ foreach ($groupMember in $licensedUsers) {
             DisabledPlans = $disabledPlans
         }
     )
-    Set-MgUserLicense -UserId $groupMember.Id -AddLicenses $addLicenses -RemoveLicenses @()
+    $results = Set-MgUserLicense -UserId $groupMember.Id -AddLicenses $addLicenses -RemoveLicenses @()
 }
