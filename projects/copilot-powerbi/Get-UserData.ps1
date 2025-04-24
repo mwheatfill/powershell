@@ -7,17 +7,7 @@ Import-Module Microsoft.Graph.Users
 Import-Module Microsoft.Graph.Authentication
 
 # Connect to Microsoft Graph
-Connect-MgGraph -Scopes "User.Read.All", "User.ReadBasic.All", "GroupMember.Read.All" -NoWelcome
-
-# Get VPN group IDs
-$vpnGroups = @(
-    "DFCU GP DUO SSO",
-    "Define GP DUO SSO",
-    "STS GP DUO SSO",
-    "GP3 DUO SSO"
-) | ForEach-Object {
-    Get-MgGroup -Filter "displayName eq '$_'"
-}
+Connect-MgGraph -Scopes "User.Read.All", "User.ReadBasic.All" -NoWelcome
 
 # Get all active users with employeeId
 $users = Get-MgUser -Filter "accountEnabled eq true and employeeId ne null" `
@@ -38,16 +28,6 @@ $userData = foreach ($user in $users) {
         $directReports = Get-MgUserDirectReport -UserId $user.Id
         $directReportCount = if ($directReports) { @($directReports).Count } else { 0 }
         
-        # Check VPN group membership across all VPN groups
-        $isVpnUser = $false
-        foreach ($vpnGroup in $vpnGroups) {
-            $groupMembers = Get-MgGroupMember -GroupId $vpnGroup.Id
-            if ($groupMembers | Where-Object { $_.Id -eq $user.Id }) {
-                $isVpnUser = $true
-                break  # Exit the loop once we find membership in any group
-            }
-        }
-        
         # Standardize Organization name
         $organization = switch -Wildcard ($user.CompanyName) {
             "Desert*" { "Desert Financial" }
@@ -67,7 +47,6 @@ $userData = foreach ($user in $users) {
                 OfficeLocation = $user.OfficeLocation
                 ApproximateHireDate = $user.CreatedDateTime.ToString('yyyy-MM-dd')
                 DirectReportCount = $directReportCount
-                IsVpnUser = $isVpnUser
                 ManagerName = $manager.AdditionalProperties.displayName
                 ManagerUPN = $manager.AdditionalProperties.userPrincipalName
             }
